@@ -2,7 +2,7 @@
 
 ## Advanced Javascript - Assignment No. 1
 
-* Forbidden usage of any Third Party javascript libraries like jQuery, requireJS etc. *
+**Forbidden usage of any Third Party javascript libraries like jQuery, requireJS etc.**
 
 Create Image Slider / Slideshow
 
@@ -19,7 +19,7 @@ Implement Slideshow like a circular queue. If user is watching last image in col
 
 ## Advanced Javascript - Assignment No. 2
 
-* Forbidden usage of any Third Party javascript libraries like jQuery, requireJS etc. *
+**Forbidden usage of any Third Party javascript libraries like jQuery, requireJS etc.**
 
 Assignment No. 1 must be completed before starting Assignment No. 2
 
