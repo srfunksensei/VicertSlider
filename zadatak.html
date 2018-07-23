@@ -1,0 +1,85 @@
+<html><head></head><body>
+<style type="text/css">
+.clearfix:after { content: "."; visibility: hidden; display: block; height: 0; clear: both; }
+.container { background-color: #ccc; padding-left: 5px; }
+.left-column { float: left; }
+.content { float: left; }
+.img { display: none; }
+.active { display:block; }
+</style>
+ 
+<div id="container">
+	<div class="img active">Slika 1</div>
+	<div class="img">Slika 2</div>
+	<div class="img">Slika 3</div>
+</div>
+ 
+<hr/>
+ 
+<div>
+	<a href="#prev" id="prev">prev</a> | 
+	<a href="#start" id="start">start</a> | 
+	<a href="#stop" id="stop">stop</a> |
+	<a href="#next" id="next">next</a> 
+  </div>
+ 
+<script type="text/javascript">
+/* readme.md
+
+# JavaScript Advanced - Examination
+
+** Each Assigment solution must be in separate file **
+
+assigment1.html
+assigment2.html
+
+## Advanced Javascript - Assigment No. 1
+
+** Forbidden usage of any Thirdy Party javascript libraries like jQuery, requireJS etc. **
+
+	Create Image Slider / Slideshow
+	
+	All code must be implemented within provided stumb methods
+
+	Slideshow must have following functionalities
+
+	1. Start - Images are changed automatically (on each second / value provided by library user)
+	2. Stop - Stop autmatic Image Slideshow
+	3. Next - When Slideshow is not in Auto Slideshow mode, show next image
+	4. Prev - When Slideshow is not in Auto Slideshow mode, show prev image
+
+	Implement Slideshow like a circular queue. If user is watching last image in collection and clicks on next button, first image should be shown and vice versa.
+
+## Advanced Javascript - Assigment No. 2
+
+** Forbidden usage of any Thirdy Party javascript libraries like jQuery, requireJS etc. **
+
+	Assigment No. 1 must be completed before starting Assigment No. 2
+
+	1. Create Module for VicertSlider object. VicertSlider module needs to be created by using Namespace + Module pattern
+	2. All code regarding VicertSlider module must be inside external javascript file
+
+	Global Namespace object for this assigment:  var VicertApp = {};
+
+## Advanced Javascript - Assigment No. 3
+
+	Assigment No. 1 and No. 2 must be completed before starting Assigment No. 3
+	
+	1) Implement Assigment No. 2 by using RequireJS library (http://requirejs.org/)
+	2) Implement VicertSliderSingleton module to behave like Singleton - Only one instance per page
+	3) Implement VicertSlider module - Multiple instances can be created from Module 
+
+*/
+var VicertSlider = function(options) { };
+ 
+VicertSlider.prototype.start = function() { }
+VicertSlider.prototype.stop = function() { }
+VicertSlider.prototype.getElementsByClass = function(node, classname) { }
+VicertSlider.prototype.animate = function() { }
+ 
+var VicertSlider = new VicertSlider();
+ 
+</script>
+ 
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!--
+## Advanced Javascript - Assigment No. 3
+
+	Assigment No. 1 and No. 2 must be completed before starting Assigment No. 3
+	
+	1) Implement Assigment No. 2 by using RequireJS library (http://requirejs.org/)
+	2) Implement VicertSliderSingleton module to behave like Singleton - Only one instance per page
+	3) Implement VicertSlider module - Multiple instances can be created from Module 
+
+-->
+<html>
+  <head>
+    <title>Vicert Slider</title>
+	<style type="text/css">
+		.clearfix:after { content: '.'; visibility: hidden; display: block; height: 0; clear: both; }
+		.slides { background-color: #ccc; padding-left: 5px; }
+		.left-column { float: left; }
+		.content { float: left; }
+		.hidden { display: none; }
+		.active { display:block; }
+	</style>
+  </head>
+  <body>
+  
+	 <div id="slides">
+		<div>Slika 1</div>
+		<div>Slika 2</div>
+		<div>Slika 3</div>
+	  </div>
+	  <hr />
+	  <div id="slides-controls">
+		<a href="#prev" id="prev">prev</a> | 
+		<a href="#start" id="start">start</a> | 
+		<a href="#stop" id="stop">stop</a> |
+		<a href="#next" id="next">next</a> 
+	  </div>
+	  
+	  <script data-main="scripts/main" src="scripts/require.js"></script>
+  </body>
+</html>

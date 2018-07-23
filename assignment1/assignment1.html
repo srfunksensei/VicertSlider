@@ -1,0 +1,311 @@
+<!--
+## Advanced Javascript - Assigment No. 1
+
+** Forbidden usage of any Thirdy Party javascript libraries like jQuery, requireJS etc. **
+
+        Create Image Slider / Slideshow
+        
+        All code must be implemented within provided stumb methods
+
+        Slideshow must have following functionalities
+
+        1. Start - Images are changed automatically (on each second / value provided by library user)
+        2. Stop - Stop autmatic Image Slideshow
+        3. Next - When Slideshow is not in Auto Slideshow mode, show next image
+        4. Prev - When Slideshow is not in Auto Slideshow mode, show prev image
+
+        Implement Slideshow like a circular queue. If user is watching last image in collection and clicks on next button, first image should be shown and vice versa.
+-->
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Vicert Slider</title>
+	<style type="text/css">
+		.clearfix:after { content: '.'; visibility: hidden; display: block; height: 0; clear: both; }
+		.slides { background-color: #ccc; padding-left: 5px; }
+		.left-column { float: left; }
+		.content { float: left; }
+		.hidden { display: none; }
+		.active { display:block; }
+	</style>
+  </head>
+  <body>
+  
+	  <div id="slides">
+		<div>Slika 1</div>
+		<div>Slika 2</div>
+		<div>Slika 3</div>
+	  </div>
+	  <hr />
+	  <div id="slides-controls">
+		<a href="#prev" id="prev">prev</a> | 
+		<a href="#start" id="start">start</a> | 
+		<a href="#stop" id="stop">stop</a> |
+		<a href="#next" id="next">next</a> 
+	  </div>
+	  
+	  <script type="text/javascript">
+		// utility
+		var Utility = {};
+		
+		Utility.addEventListener = function (node, type, listener, useCapture)
+		{
+			node.addEventListener ? 
+					node.addEventListener(type, listener, useCapture) : 
+					node.attachEvent('on' + type, listener);
+		}
+		
+		Utility.getElementsByClass = function (node, classname)
+		{
+			if(node.getElementsByClassName){
+				return node.getElementsByClassName(classname);
+			}
+			
+			if(node.querySelectorAll){
+				return node.querySelectorAll('.' + classname);
+			}
+			
+			var elements = [];
+			var re = new RegExp('(^| )' + classname + '( |$)');
+			var els = node.getElementsByTagName("*");
+			for(var i=0, j=els.length; i<j; i++){
+				if(re.test(els[i].className)){
+					elements.push(els[i]);
+				}
+			}
+			
+			return elements;
+		}
+		
+		Utility.hasClass = function (node, classname)
+		{
+			return new RegExp('(\\s|^)' + classname + '(\\s|$)').test(node.className);
+		}
+		
+		Utility.addClass = function (node, classname)
+		{
+			if(this.hasClass(node, classname)){
+				return;
+			}
+			
+			node.classList ? 
+				node.classList.add(classname) :
+				node.className += (node.className ? ' ' : '') + classname;
+		}
+		
+		Utility.removeClass = function (node, classname)
+		{
+			if(!this.hasClass(node, classname)){
+				return;
+			}
+			
+			node.className = node.className.replace(new RegExp('(\\s|^)' + classname + '(\\s|$)'),' ').replace(/^\s+|\s+$/g, '');
+		}
+		
+		Utility.fadeIn = function(node)
+		{
+			var op = 0;  // initial opacity
+			var timer = setInterval(function () {
+				if (op >= 1){
+					clearInterval(timer);
+					node.style.display = 'block';
+				}
+				node.style.opacity = op;
+				node.style.filter = 'alpha(opacity=' + op * 100 + ")";
+				op += 0.1;
+			}, 10);
+		}
+		
+		Utility.fadeOut = function(node)
+		{
+			var op = 1;  // initial opacity
+			var timer = setInterval(function () {
+				if (op <= 0.1){
+					clearInterval(timer);
+					node.style.display = 'none';
+				}
+				node.style.opacity = op;
+				node.style.filter = 'alpha(opacity=' + op * 100 + ")";
+				op -= op * 0.1;
+			}, 10);
+		}
+		
+		Utility.fadeConcurently = function(nodeFrom, nodeTo)
+		{
+			var opOut = 1;
+			var opIn = 0;
+			var timer = setInterval(function () {
+				if (opOut <= 0.1 || opIn >= 1){
+					clearInterval(timer);
+					nodeFrom.style.display = 'none';
+					nodeTo.style.display = 'block';
+				}
+				nodeFrom.style.opacity = opOut;
+				nodeFrom.style.filter = 'alpha(opacity=' + opOut * 100 + ")";
+				opOut -= opOut * 0.1;
+				
+				nodeTo.style.opacity = opIn;
+				nodeTo.style.filter = 'alpha(opacity=' + opIn * 100 + ")";
+				opIn += 0.1;
+			}, 10);
+		}
+		
+		
+		var VicertSlider = function(options) { 
+			var defaults = {  
+				slidePrefix            : 'slide-',
+				slidesContainerID      : 'slides',
+				prevSlide			   : 'prev',
+				nextSlide			   : 'next',
+				startSlideAnimation	   : 'start',
+				stopSlideAnimation	   : 'stop',
+				activeSlide			   : 'active',
+				hiddenSlide			   : 'hidden',
+
+				slideDelay			   : 5000,
+				transInterval  	   	   : 0
+			};
+			
+			this.sliderOptions = options || defaults;
+			
+			this.init();
+		};
+
+		VicertSlider.prototype.init = function() 
+		{
+			this.setUpSlides();
+			this.setUpSliderControls();
+		}
+		
+		// set up
+		VicertSlider.prototype.setUpSlides = function ()
+		{
+			// collect the slides
+			var slidesCollection = document.getElementById(this.sliderOptions.slidesContainerID).children;
+
+			if (slidesCollection.length < 2) return;
+		 
+			//go through all slides
+			for (var i=0; i < slidesCollection.length; i++)
+			{
+				// give IDs to slides
+				slidesCollection[i].id = this.sliderOptions.slidePrefix + (i + 1);
+
+				//hide all slides except the first
+				if (i > 0){
+					Utility.addClass(slidesCollection[i], this.sliderOptions.hiddenSlide);
+				} else if( i == 0){
+					Utility.addClass(slidesCollection[i], this.sliderOptions.activeSlide);
+				}
+			}
+		}
+		
+		VicertSlider.prototype.setUpSliderControls = function ()
+		{
+			// collect the controls
+			var slidePrev = document.getElementById(this.sliderOptions.prevSlide);
+			var slideNext = document.getElementById(this.sliderOptions.nextSlide);
+			var slidesStartAnimation = document.getElementById(this.sliderOptions.startSlideAnimation);
+			var slidesStopAnimation = document.getElementById(this.sliderOptions.stopSlideAnimation);
+			
+			// attach onclick handlers to controls
+			var func = null;
+			if (slidePrev !== null){
+				func = (function(context){ return function() {context.prev()}})(this);
+				Utility.addEventListener(slidePrev, 'click', func);
+			}
+			if (slideNext !== null){
+				func = (function(context){ return function() {context.next()}})(this);
+				Utility.addEventListener(slideNext, 'click', func);
+			}
+			if (slidesStartAnimation !== null){
+				func = (function(context){ return function() {context.start()}})(this);
+				Utility.addEventListener(slidesStartAnimation, 'click', func);
+			}
+			if (slidesStopAnimation !== null){
+				func = (function(context){ return function() {context.stop()}})(this);
+				Utility.addEventListener(slidesStopAnimation, 'click', func);
+			}
+		}
+	
+		// get slide index
+		VicertSlider.prototype.getCurrentSlideIndex = function ()
+		{
+			var currentSlideID = Utility.getElementsByClass(document, this.sliderOptions.activeSlide)[0].id;
+			var currentSlideIndex = currentSlideID.substr(currentSlideID.lastIndexOf('-') + 1);
+			return parseInt(currentSlideIndex);
+		}
+
+		VicertSlider.prototype.getNextSlideIndex = function ()
+		{
+			var totalSlides = document.getElementById(this.sliderOptions.slidesContainerID).children.length;
+			var currentSlideIndex = this.getCurrentSlideIndex();
+			return (currentSlideIndex % totalSlides) + 1;
+		}
+
+		VicertSlider.prototype.getPrevSlideIndex = function ()
+		{
+			var totalSlides = document.getElementById(this.sliderOptions.slidesContainerID).children.length;
+			var currentSlideIndex = this.getCurrentSlideIndex();
+			var nextIndex = (currentSlideIndex - 1) % totalSlides;
+			return nextIndex == 0 ? totalSlides : nextIndex;
+		}
+		
+		// animation
+		VicertSlider.prototype.animate = function (slideNo)
+		{
+			var from = this.getCurrentSlideIndex();	
+			var to = (arguments.length === 0 ? this.getNextSlideIndex() : slideNo);
+			
+			if (to === from){
+				return;
+			}
+		 
+			var currentSlide = document.getElementById(this.sliderOptions.slidePrefix + from);
+			var nextSlide = document.getElementById(this.sliderOptions.slidePrefix + to);
+			
+			// fade out the current slide
+			// fade in the next slide
+			//Utility.fadeConcurently(currentSlide, nextSlide);
+			
+			// complete
+			Utility.addClass(currentSlide, this.sliderOptions.hiddenSlide);
+			Utility.removeClass(currentSlide, this.sliderOptions.activeSlide);
+			
+			Utility.addClass(nextSlide, this.sliderOptions.activeSlide);
+			Utility.removeClass(nextSlide, this.sliderOptions.hiddenSlide);
+		}
+		
+		VicertSlider.prototype.start = function ()
+		{
+			if(!this.sliderOptions.transInterval){
+				var func = (function(context){ return function() {context.animate()}})(this);
+				this.sliderOptions.transInterval = setInterval(func, this.sliderOptions.slideDelay);
+			}
+		}
+
+		VicertSlider.prototype.stop = function ()
+		{
+			if(this.sliderOptions.transInterval){
+				clearInterval(this.sliderOptions.transInterval);
+				this.sliderOptions.transInterval = 0;
+			}
+		}
+		
+		VicertSlider.prototype.prev = function ()
+		{
+			var prevSlideIndex = this.getPrevSlideIndex();
+			this.animate(prevSlideIndex); 
+		}
+		
+		VicertSlider.prototype.next = function ()
+		{
+			var nextSlideIndex = this.getNextSlideIndex();
+			this.animate(); 
+		}
+		
+		var VicertSlider = new VicertSlider();
+	  </script>
+  </body>
+</html>

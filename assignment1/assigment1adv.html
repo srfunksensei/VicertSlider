@@ -1,0 +1,323 @@
+<!--
+## Advanced Javascript - Assigment No. 1
+
+** Forbidden usage of any Thirdy Party javascript libraries like jQuery, requireJS etc. **
+
+        Create Image Slider / Slideshow
+        
+        All code must be implemented within provided stumb methods
+
+        Slideshow must have following functionalities
+
+        1. Start - Images are changed automatically (on each second / value provided by library user)
+        2. Stop - Stop autmatic Image Slideshow
+        3. Next - When Slideshow is not in Auto Slideshow mode, show next image
+        4. Prev - When Slideshow is not in Auto Slideshow mode, show prev image
+
+        Implement Slideshow like a circular queue. If user is watching last image in collection and clicks on next button, first image should be shown and vice versa.
+-->
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Vicert Slider</title>
+	<style type="text/css">
+		.clearfix:after { content: '.'; visibility: hidden; display: block; height: 0; clear: both; }
+		.slides { background-color: #ccc; padding-left: 5px; }
+		.left-column { float: left; }
+		.content { float: left; }
+		.hidden { display: none; }
+		.active { display:block; }
+	</style>
+  </head>
+  <body>
+  
+	  <div id="slides">
+		<div class="hidden active">Slika 1</div>
+		<div class="">Slika 2</div>
+		<div class="">Slika 3</div>
+	  </div>
+	  <hr />
+	  <div id="slides-controls">
+		<a href="#prev" id="prev">prev</a> | 
+		<a href="#start" id="start">start</a> | 
+		<a href="#stop" id="stop">stop</a> |
+		<a href="#next" id="next">next</a> 
+	  </div>
+	  
+	  <script type="text/javascript">
+		// utility
+		var Utility = function(){}
+		
+		Utility.prototype.addEventListener = function (node, type, listener, useCapture){
+			node.addEventListener ? 
+					node.addEventListener(type, listener, useCapture) : 
+					node.attachEvent('on' + type, listener);
+		}
+		
+		Utility.prototype.getElementsByClass = function (node, classname){
+			if(node.getElementsByClassName){
+				return node.getElementsByClassName(classname);
+			}
+			
+			if(node.querySelectorAll){
+				return node.querySelectorAll('.' + classname);
+			}
+			
+			var elements = [];
+			var re = new RegExp('(^| )' + classname + '( |$)');
+			var els = node.getElementsByTagName("*");
+			for(var i=0, j=els.length; i<j; i++){
+				if(re.test(els[i].className)){
+					elements.push(els[i]);
+				}
+			}
+			
+			return elements;
+		}
+		
+		Utility.prototype.hasClass = function (node, classname){
+			return new RegExp('(\\s|^)' + classname + '(\\s|$)').test(node.className);
+		}
+		
+		Utility.prototype.addClass = function (node, classname)
+		{
+			if(this.hasClass(node, classname)){
+				return;
+			}
+			
+			node.classList ? 
+				node.classList.add(classname) :
+				node.className += (node.className ? ' ' : '') + classname;
+		}
+		
+		Utility.prototype.removeClass = function (node, classname)
+		{
+			if(!this.hasClass(node, classname)){
+				return;
+			}
+			
+			node.className = node.className.replace(new RegExp('(\\s|^)' + classname + '(\\s|$)'),' ').replace(/^\s+|\s+$/g, '');
+		}
+		
+		
+		
+		
+		var VicertSlider = function(options) { 
+			var that = this;
+			
+			this.defaults = {  
+				slidePrefix            : 'slide-',
+				slidesContainerID      : 'slides',
+				prevSlide			   : 'prev',
+				nextSlide			   : 'next',
+				startSlideAnimation	   : 'start',
+				stopSlideAnimation	   : 'stop',
+				activeSlide			   : 'active',
+				hiddenSlide			   : 'hidden',
+
+				slideDelay			   : 1000,
+				
+				slideAnimationInterval : 20,
+				slideTransitionSteps   : 10
+			};
+			
+			this.sliderOptions = options || this.defaults;
+			
+			Util = new Utility();
+			
+			var transTimeout  	   	   = 0;
+			var slideTransStep		   = 0;
+			var autoslide			   = false;
+			
+			
+			
+			
+		};
+
+		
+		VicertSlider.prototype = function()
+		{
+			// set up
+			var setUpSlides = function ()
+			{
+				// collect the slides
+				console.log(this);
+				var slidesCollection = document.getElementById(this.sliderOptions.slidesContainerID).children;
+
+				if (slidesCollection.length < 2) return;
+			 
+				//go through all slides
+				for (var i=0; i < slidesCollection.length; i++)
+				{
+					// give IDs to slides
+					slidesCollection[i].id = that.sliderOptions.slidePrefix + (i + 1);
+
+					//hide all slides except the first
+					if (i > 0){
+						Util.addClass(slidesCollection[i], that.sliderOptions.hiddenSlide);
+					}
+				}
+			}
+			
+			var setUpSliderControls = function ()
+			{
+				// collect the controls
+				var slidePrev = document.getElementById(that.sliderOptions.prevSlide);
+				var slideNext = document.getElementById(that.sliderOptions.nextSlide);
+				var slidesStartAnimation = document.getElementById(that.sliderOptions.startSlideAnimation);
+				var slidesStopAnimation = document.getElementById(that.sliderOptions.stopSlideAnimation);
+				
+				// attach onclick handlers to controls
+				if (slidePrev !== null){
+					Util.addEventListener(slidePrev, 'click', that.prev);
+				}
+				if (slideNext !== null){
+					Util.addEventListener(slideNext, 'click', that.next);
+				}
+				if (slidesStartAnimation !== null){
+					Util.addEventListener(slidesStartAnimation, 'click', that.start);
+				}
+				if (slidesStopAnimation !== null){
+					Util.addEventListener(slidesStopAnimation, 'click', that.stop);
+				}
+			}
+		
+			// get slide index
+			var getCurrentSlideIndex = function ()
+			{
+				var currentSlideID = Util.getElementsByClass(document, that.sliderOptions.activeSlide)[0].id;
+				var currentSlideIndex = currentSlideID.substr(currentSlideID.lastIndexOf('-') + 1);
+				return parseInt(currentSlideIndex);
+			}
+
+			var getNextSlideIndex = function ()
+			{
+				var totalSlides = document.getElementById(that.sliderOptions.slidesContainerID).children.length;
+				var currentSlideIndex = getCurrentSlideIndex();
+				return (currentSlideIndex % totalSlides) + 1;
+			}
+
+			var getPrevSlideIndex = function ()
+			{
+				var totalSlides = document.getElementById(that.sliderOptions.slidesContainerID).children.length;
+				var currentSlideIndex = getCurrentSlideIndex();
+				var nextIndex = (currentSlideIndex - 1) % totalSlides;
+				return nextIndex == 0 ? totalSlides : nextIndex;
+			}
+			
+			// animation
+			var showSlide = function (slideNo, immediate)
+			{	
+				var currentSlide = getCurrentSlideIndex();	
+				
+				// don't do any action while a transition is in progress
+				if (slideTransStep != 0 || slideNo == currentSlide){
+					return;
+				}
+			 
+				clearTimeout(transTimeout);
+				slideTransStep = 0;
+			 
+				// start the transition now upon request or after a delay (default)
+				if (immediate == true){
+					transSlide(currentSlide, slideNo);
+				} else {
+					transTimeout = setTimeout('transSlide(' + currentSlide + ',' + slideNo + ')', that.sliderOptions.slideDelay);
+				}
+			}
+
+			var transSlide = function (from, to)
+			{
+				var currentSlide = document.getElementById(that.sliderOptions.slidePrefix + from);
+				var nextSlide = document.getElementById(that.sliderOptions.slidePrefix + to);
+				
+				// calculate opacity
+				var opacity = slideTransStep / that.sliderOptions.slideTransitionSteps;
+			 
+				// fade out the current slide
+				currentSlide.style.opacity = '' + (1 - opacity);
+				currentSlide.style.filter = 'alpha(opacity=' + (100 - opacity*100) + ')';
+			 
+				// fade in the next slide
+				nextSlide.style.opacity = '' + opacity;
+				nextSlide.style.filter = 'alpha(opacity=' + (opacity*100) + ')';
+			 
+			 
+				// if not completed, do this step again after a short delay
+				if (++slideTransStep <= that.sliderOptions.slideTransitionSteps){
+					transTimeout = setTimeout('transSlide(' + from + ',' + to + ')', that.sliderOptions.slideAnimationInterval);
+				} else {
+					// complete
+					Util.addClass(currentSlide, that.sliderOptions.hiddenSlide);
+					Util.removeClass(currentSlide, that.sliderOptions.activeSlide);
+					
+					Util.addClass(nextSlide, that.sliderOptions.activeSlide);
+					Util.removeClass(nextSlide, that.sliderOptions.hiddenSlide)
+					
+					slideTransStep = 0;
+			 
+					// for IE filters, removing filters reenables cleartype
+					if (nextSlide.style.removeAttribute){
+						nextSlide.style.removeAttribute('filter');
+					}
+					
+					if(autoslide){
+						showSlide(getNextSlideIndex());
+					}
+				}
+			}
+			
+			
+			
+			return {
+				next : function ()
+						{
+							var nextSlideIndex = getNextSlideIndex();
+							console.log(nextSlideIndex);
+							showSlide(nextSlideIndex, true); 
+						},
+				init : function ()
+						{
+							setUpSlides();
+							setUpSliderControls();
+						}
+			};
+		}();
+		
+		VicertSlider.prototype.start = function ()
+		{
+			autoslide = true;
+			showSlide(getNextSlideIndex());
+		}
+
+		VicertSlider.prototype.stop = function ()
+		{
+			clearTimeout(transTimeout);
+			transTimeout = 0;
+			autoslide = false;
+		}
+		
+		VicertSlider.prototype.prev = function ()
+		{
+			var prevSlideIndex = getPrevSlideIndex();
+			showSlide(prevSlideIndex, true); 
+		}
+		/*
+		VicertSlider.prototype.next = function ()
+		{
+			var nextSlideIndex = getNextSlideIndex.call(this);
+			console.log(nextSlideIndex);
+			showSlide(nextSlideIndex, true); 
+		}
+		*/
+		VicertSlider.prototype.animate = function ()
+		{
+			
+		}
+		
+		var v= new VicertSlider();
+//		v.init();
+	  </script>
+  </body>
+</html>

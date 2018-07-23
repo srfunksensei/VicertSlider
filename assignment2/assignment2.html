@@ -1,0 +1,51 @@
+<!--
+## Advanced Javascript - Assigment No. 2
+
+** Forbidden usage of any Thirdy Party javascript libraries like jQuery, requireJS etc. **
+
+	Assigment No. 1 must be completed before starting Assigment No. 2
+
+	1. Create Module for VicertSlider object. VicertSlider module needs to be created by using Namespace + Module pattern
+	2. All code regarding VicertSlider module must be inside external javascript file
+
+	Global Namespace object for this assigment:  var VicertApp = {};
+
+-->
+<html>
+  <head>
+    <title>Vicert Slider</title>
+	<style type="text/css">
+		.clearfix:after { content: '.'; visibility: hidden; display: block; height: 0; clear: both; }
+		.slides { background-color: #ccc; padding-left: 5px; }
+		.left-column { float: left; }
+		.content { float: left; }
+		.hidden { display: none; }
+		.active { display:block; }
+	</style>
+  </head>
+  <body>
+  
+	 <div id="slides">
+		<div>Slika 1</div>
+		<div>Slika 2</div>
+		<div>Slika 3</div>
+	  </div>
+	  <hr />
+	  <div id="slides-controls">
+		<a href="#prev" id="prev">prev</a> | 
+		<a href="#start" id="start">start</a> | 
+		<a href="#stop" id="stop">stop</a> |
+		<a href="#next" id="next">next</a> 
+	  </div>
+	  
+	  <script type="text/javascript">
+		var VicertApp = VicertApp || {};
+	  </script>
+	  <script type="text/javascript" src="util.js"></script>
+	  <script type="text/javascript" src="assignment2.js"></script>
+	  <script type="text/javascript">
+		new VicertApp.VicertSlider();
+	  </script>
+	  
+  </body>
+</html>
